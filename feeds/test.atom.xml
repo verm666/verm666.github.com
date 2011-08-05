@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom"><title>verm666</title><link href="http://verm666.github.com" rel="alternate"></link><link href="http://verm666.github.com/feeds/test.atom.xml" rel="self"></link><id>http://verm666.github.com</id><updated>2011-08-06T01:17:00Z</updated><entry><title>Мегапост!</title><link href="http://verm666.github.com/megapost.html" rel="alternate"></link><updated>2011-08-06T01:17:00Z</updated><author><name>verm666</name></author><id>tag:verm666.github.com,2011-08-06:/megapost.html/</id><summary type="html">&lt;p&gt;h1. Test header level 1&lt;/p&gt;
+&lt;p&gt;h2. Test header level 2&lt;/p&gt;
+&lt;p&gt;А тут текст да на русском!&lt;/p&gt;
+&lt;script src="https://gist.github.com/1128512.js?file=example.py"&gt;&lt;/script&gt;</summary></entry></feed>
