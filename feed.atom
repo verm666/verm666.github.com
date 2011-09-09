@@ -22,17 +22,5 @@
 &lt;/ul&gt;
 </content>
   </entry>
-  <entry xml:base="http://verm666.github.com/feed.atom">
-    <title type="text">My First Blogpost</title>
-    <id>http://verm666.github.com/2011/08/31/test</id>
-    <updated>2011-08-31T00:00:00Z</updated>
-    <link href="http://verm666.github.com/2011/08/31/test" />
-    <author>
-      <name>verm666</name>
-    </author>
-    <content type="html">&lt;p&gt;Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
-tempor incididunt ut labore et dolore magna aliqua.&lt;/p&gt;
-</content>
-  </entry>
 </feed>
 
