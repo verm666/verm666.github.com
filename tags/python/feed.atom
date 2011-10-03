@@ -8,21 +8,6 @@
   <subtitle type="text">Recent blog posts</subtitle>
   <generator>Werkzeug</generator>
   <entry xml:base="http://verm666.github.com/feed.atom">
-    <title type="text">Memory as a programming concept in C and C++</title>
-    <id>http://verm666.github.com/2011/09/09/memory_as_a_programming_concept</id>
-    <updated>2011-09-09T00:00:00Z</updated>
-    <link href="http://verm666.github.com/2011/09/09/memory_as_a_programming_concept" />
-    <author>
-      <name>verm666</name>
-    </author>
-    <content type="html">&lt;ul class="simple"&gt;
-&lt;li&gt;Название книги: Memory as a Programming Concept in C and C++&lt;/li&gt;
-&lt;li&gt;Автор: Frantisek Franek&lt;/li&gt;
-&lt;li&gt;Amazon: &lt;a class="reference external" href="http://www.amazon.com/Memory-Programming-Concept-Frantisek-Franek/dp/0521520436"&gt;http://www.amazon.com/Memory-Programming-Concept-Frantisek-Franek/dp/0521520436&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-</content>
-  </entry>
-  <entry xml:base="http://verm666.github.com/feed.atom">
     <title type="text">Python Bookmarks</title>
     <id>http://verm666.github.com/2011/09/20/python_bookmarks</id>
     <updated>2011-09-20T00:00:00Z</updated>
