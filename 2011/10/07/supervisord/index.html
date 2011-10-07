@@ -1,0 +1,224 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset=utf-8>
+  
+    <title>Supervisord | verm666's blog</title>
+    <link href="http://fonts.googleapis.com/css?family=Vollkorn&subset=latin" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="/static/style.css" type="text/css">
+    <link href="/feed.atom" rel="alternate" title="Recent Blog Posts" type="application/atom+xml">
+    <link rel="stylesheet" href="/static/_pygments.css" type="text/css">
+  
+  </head>
+  <body>
+    <div class=container>
+      <div class=header>
+        <a href="/">verm666</a>'s blog
+      </div>
+      <div class=navigation>
+        <ul>
+          <li><a href="/">blog</a>
+          <li><a href="/archive/">archive</a>
+          <li><a href="/tags/">tags</a>
+        </ul>
+      </div>
+      <div class=body>
+      
+  <h1 class="title">Supervisord</h1>
+
+  
+  <p class=date>written on Friday, October 7, 2011
+  
+
+  <div class="section" id="id1">
+<h2>Введение</h2>
+<p>Supervisord - еще один из (кроме runit, launchd, systemd, upstart и т.п.) продуктов
+занимающихся слежением за сервисами, запущенными в виде дочерних процессов.</p>
+<ul class="simple">
+<li><a class="reference external" href="http://supervisord.org">Официальный сайт</a>;</li>
+<li><a class="reference external" href="https://github.com/supervisor/supervisor">Guthub репозиторий</a>.</li>
+</ul>
+<p>Написан на Pyhton. Для всех операций по управлению сервисами (start/stop/etc) как в web-interface, так
+и в supervisorctl использует XML-RPC.</p>
+<p>О том как поставить и запустить сам supervisord можно прочитать на <a class="reference external" href="http://supervisord.org">сайте проекта</a>.
+Ниже я опишу только те моменты, которые мне показались интересными.</p>
+</div>
+<div class="section" id="id4">
+<h2>Добавление нового сервиса</h2>
+<p>Добавление нового сервиса осуществляется через редактирование основного конф. файла (supervisord.conf)
+или созданием отдельного конф. файла, который будет подключен через директиву include.
+Простой пример конфигурационного файла для демона, который должен быть запущен в двух
+экземлплярах:</p>
+<div class="highlight"><pre><span class="k">[program:daemon]</span>
+<span class="na">user</span> <span class="o">=</span> <span class="s">vdm</span>
+<span class="na">command</span> <span class="o">=</span> <span class="s">/opt/bin/daemon-runner</span>
+<span class="na">process_name</span> <span class="o">=</span> <span class="s">%(program_name)s_%(process_num)02d</span>
+<span class="na">process_num</span> <span class="o">=</span> <span class="s">2</span>
+<span class="na">stdout_logfile</span> <span class="o">=</span> <span class="s">/var/log/%(program_name)s_%(process_num)02d.log</span>
+</pre></div>
+<p>На мой взгляд это основная фишка supervisord - возможность запуска нескольких экзепляров демона без лишних телодвижений.
+В том же runit для этого пришлось бы создать два отдельных сервиса с идентичными настройками, а в upstart - один сервис
+привязанный к событию и нечто, что emit'ит это событие (идеально подходит для конфигурации сетевых интерфейсов,
+но вот запуск просто демона получается слишком сложным (см. настройку сетевой подсистемы в Ubuntu)).</p>
+</div>
+<div class="section" id="id5">
+<h2>Порядок запуска сервисов</h2>
+<p>После прочтения документации вам может показаться, что в supervisord самая вменяемая реализация порядка запуска сервисов.
+Это не так.</p>
+<p>В supervisord каждому сервису можно задать приоритет (priority). Сервис с наивысшим приоритетом включается
+последним и выключается первым. Кроме этого для сервиса можно указать параметр startsecs, который указывает
+время в секундах, которое сервис должен прожить, что бы считаться успешно запущенным.</p>
+<p>Рассмотрим простой пример:</p>
+<ul class="simple">
+<li>Конф. файл supervisord:</li>
+</ul>
+<div class="highlight"><pre><span class="k">[program:service1]</span>
+<span class="na">command</span> <span class="o">=</span> <span class="s">/opt/bin/service1</span>
+<span class="na">priority</span> <span class="o">=</span> <span class="s">1</span>
+<span class="na">startsecs</span> <span class="o">=</span> <span class="s">10</span>
+<span class="na">stdout_logfile</span> <span class="o">=</span> <span class="s">/tmp/service1.log</span>
+
+<span class="k">[program:service2]</span>
+<span class="na">command</span> <span class="o">=</span> <span class="s">/opt/bin/service2</span>
+<span class="na">priority</span> <span class="o">=</span> <span class="s">100</span>
+<span class="na">startsecs</span> <span class="o">=</span> <span class="s">10</span>
+<span class="na">stdout_logfile</span> <span class="o">=</span> <span class="s">/tmp/service2.log</span>
+</pre></div>
+<ul class="simple">
+<li>Сервисы:</li>
+</ul>
+<div class="highlight"><pre>root@development:/opt/bin# cat service1
+<span class="c">#!/bin/bash</span>
+
+<span class="nb">echo</span> <span class="s2">&quot;Start: $(date -R)&quot;</span>
+
+<span class="nb">exec </span>dd <span class="k">if</span><span class="o">=</span>/dev/zero <span class="nv">of</span><span class="o">=</span>/dev/null <span class="nv">bs</span><span class="o">=</span>1M
+root@development:/opt/bin# cat service2
+<span class="c">#!/bin/bash</span>
+
+<span class="nb">echo</span> <span class="s2">&quot;Start: $(date -R)&quot;</span>
+
+<span class="nb">exec </span>dd <span class="k">if</span><span class="o">=</span>/dev/zero <span class="nv">of</span><span class="o">=</span>/dev/null <span class="nv">bs</span><span class="o">=</span>2M
+</pre></div>
+<p>Самое логичное, что можно предположить - сервисы будут запускаться в следующем порядке:</p>
+<ul class="simple">
+<li>Запуск service1;</li>
+<li>Ждем 10 секунд. Сервис работает. Считаем, что он запущен успешно;</li>
+<li>Запуск service2;</li>
+<li>Ждем 10 секунд. Сервис работает. Считаем, что он запущен успешно;</li>
+<li>Profit.</li>
+</ul>
+<p>Что получаем на самом деле:</p>
+<div class="highlight"><pre># tail -f /var/log/supervisor/supervisord.log
+00:33:17,868 INFO spawned: &#39;service1&#39; with pid 6532
+00:33:17,897 INFO spawned: &#39;service2&#39; with pid 6533
+00:33:27,997 INFO success: service1 entered RUNNING state, process
+ has stayed up for &gt; than 10 seconds (startsecs)
+00:33:27,997 INFO success: service2 entered RUNNING state, process
+ has stayed up for &gt; than 10 seconds (startsecs)
+</pre></div>
+</div>
+<div class="section" id="web-interface">
+<h2>Web-interface</h2>
+<p>Web интерфейс доступен &quot;из коробки&quot;. Позволяет:</p>
+<ul class="simple">
+<li>Cмотреть статус сервисов;</li>
+<li>Смотреть лог сервиса;</li>
+<li>Очистить лог сервиса;</li>
+<li>Остановить/запустить сервис.</li>
+</ul>
+</div>
+<div class="section" id="events">
+<h2>Events</h2>
+<ul class="simple">
+<li><a class="reference external" href="http://supervisord.org/events.html">Документация на сайте проекта</a>.</li>
+</ul>
+<p>Event'ы еще одна значимая часть supervisord - позволяет реагировать на возникающие события (изменения статуса сервиса, новое сообщение в STDOUT/STDERR в логе сервиса и др. Полный список доступных событий - <a class="reference external" href="http://supervisord.org/events.html#event-types">тут</a>).</p>
+<p>Примеры применения:</p>
+<ul class="simple">
+<li>Послать письмо, если сервис упал;</li>
+<li>Послать изменение состояния в систему мониторинга;</li>
+<li>Перезапустить связанный сервис на этом или др. сервере (через XML-RPC).</li>
+</ul>
+<p>Что бы начать реагировать на события необходимо настроить свой event-listener. Event-listener будет запущен supervisord как
+дочерний процесс, а информация о событиях будет передаваться ему на STDIN, а через STDOUT он должен оповещать supervisord
+о своем текущем статусе.</p>
+<ul class="simple">
+<li>Пример настройки event-listener'а:</li>
+</ul>
+<div class="highlight"><pre><span class="c"># cat /etc/supervisor/conf.d/listener.conf</span>
+<span class="k">[eventlistener:watcher]</span>
+<span class="na">command</span><span class="o">=</span><span class="s">/opt/bin/watcher.py</span>
+<span class="na">events</span><span class="o">=</span><span class="s">PROCESS_STATE</span>
+</pre></div>
+<ul class="simple">
+<li>Пример event-listener'а:</li>
+</ul>
+<div class="highlight"><pre><span class="c">#!/usr/bin/env python</span>
+<span class="c"># -*- coding: utf-8 -*-</span>
+
+<span class="kn">import</span> <span class="nn">sys</span>
+
+<span class="k">def</span> <span class="nf">w</span><span class="p">(</span><span class="n">message</span><span class="p">):</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+
+<span class="k">def</span> <span class="nf">e</span><span class="p">(</span><span class="n">message</span><span class="p">):</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+        <span class="n">w</span><span class="p">(</span><span class="s">&#39;READY</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdin</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+        <span class="n">e</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="c"># debug</span>
+        <span class="c"># parse line and do something</span>
+        <span class="n">w</span><span class="p">(</span><span class="s">&#39;RESULT 2</span><span class="se">\n</span><span class="s">OK&#39;</span><span class="p">)</span>
+</pre></div>
+<ul class="simple">
+<li>В STDERR event-listener'а при перезапуске service1 будет писаться следующее:</li>
+</ul>
+<div class="highlight"><pre>processname:service1 groupname:service1 from_state:RUNNING pid:9915ver:3.0
+server:supervisor01 serial:47 pool:watcher poolserial:7
+eventname:PROCESS_STATE_STOPPED len:68
+processname:service1 groupname:service1 from_state:STOPPING pid:9915ver:3.0
+server:supervisor01 serial:48 pool:watcher poolserial:8
+eventname:PROCESS_STATE_STARTING len:66
+processname:service1 groupname:service1 from_state:STOPPED tries:0ver:3.0
+server:supervisor01 serial:49 pool:watcher poolserial:9
+eventname:PROCESS_STATE_RUNNING len:68
+</pre></div>
+</div>
+<div class="section" id="id8">
+<h2>Выводы</h2>
+<p>Вцелом supervisord выглядит как вменяемый законченный продукт (надо будет заняться исправлением поведения с порядком запуска
+сервисов). Если сравнивать его со связкой <a class="reference external" href="http://smarden.org/runit/">runit</a> + <a class="reference external" href="https://github.com/Undev/runit-man">runit-man</a> он больше похож на то, что можно использовать в production
+окружении. Но.. но основные достоинства supervisord просто бесполезны в случае использования chef:</p>
+<ul class="simple">
+<li>Управление сервисами на удаленном сервере (через XML-RPC или supervisorctl -s SERVER_NAME). Вам это не надо, ведь у вас есть knife с поиском по ролям, нодам и тегам;</li>
+<li>Запуск нескольких инстансов демона без объявления нескольких сервисов. Опять же не особо полезно, веть за вас эти сервисы настраивает chef. И сколько их 1, 10 или 100 вцелом не так уж и важно.</li>
+</ul>
+<p>Ссылки по теме:</p>
+<ul class="simple">
+<li><a class="reference external" href="http://python.mirocommunity.org/video/1798/pyohio-2010-controlling-unix-p">Выступление Calvin Hendryx-Parker</a>.</li>
+</ul>
+</div>
+
+
+  
+  <p class=tags>This entry was tagged
+    
+      <a href="/tags/python/">python</a>, 
+      <a href="/tags/runit/">runit</a> and 
+      <a href="/tags/supervisord/">supervisord</a>
+  
+
+      </div>
+      <div class=footer>
+          <a href="http://twitter.com/verm666">twitter</a>,
+          <a href="http://github.com/verm666">github</a>,
+          <a href="/feed.atom" rel="alternate" title="Recent Blog Posts">feed</a>
+      </div>
+    </div>
+  </body>
+</html>
