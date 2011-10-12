@@ -38,7 +38,7 @@
 <li><a class="reference external" href="http://supervisord.org">Официальный сайт</a>;</li>
 <li><a class="reference external" href="https://github.com/supervisor/supervisor">Guthub репозиторий</a>.</li>
 </ul>
-<p>Написан на Pyhton. Для всех операций по управлению сервисами (start/stop/etc) как в web-interface, так
+<p>Написан на Python. Для всех операций по управлению сервисами (start/stop/etc) как в web-interface, так
 и в supervisorctl использует XML-RPC.</p>
 <p>О том как поставить и запустить сам supervisord можно прочитать на <a class="reference external" href="http://supervisord.org">сайте проекта</a>.
 Ниже я опишу только те моменты, которые мне показались интересными.</p>
@@ -48,7 +48,7 @@
 <p>Добавление нового сервиса осуществляется через редактирование основного конф. файла (supervisord.conf)
 или созданием отдельного конф. файла, который будет подключен через директиву include.
 Простой пример конфигурационного файла для демона, который должен быть запущен в двух
-экземлплярах:</p>
+экземплярах:</p>
 <div class="highlight"><pre><span class="k">[program:daemon]</span>
 <span class="na">user</span> <span class="o">=</span> <span class="s">vdm</span>
 <span class="na">command</span> <span class="o">=</span> <span class="s">/opt/bin/daemon-runner</span>
@@ -56,7 +56,7 @@
 <span class="na">process_num</span> <span class="o">=</span> <span class="s">2</span>
 <span class="na">stdout_logfile</span> <span class="o">=</span> <span class="s">/var/log/%(program_name)s_%(process_num)02d.log</span>
 </pre></div>
-<p>На мой взгляд это основная фишка supervisord - возможность запуска нескольких экзепляров демона без лишних телодвижений.
+<p>На мой взгляд это основная фишка supervisord - возможность запуска нескольких экземпляров демона без лишних телодвижений.
 В том же runit для этого пришлось бы создать два отдельных сервиса с идентичными настройками, а в upstart - один сервис
 привязанный к событию и нечто, что emit'ит это событие (идеально подходит для конфигурации сетевых интерфейсов,
 но вот запуск просто демона получается слишком сложным (см. настройку сетевой подсистемы в Ubuntu)).</p>
@@ -196,7 +196,7 @@ eventname:PROCESS_STATE_RUNNING len:68
 окружении. Но.. но основные достоинства supervisord просто бесполезны в случае использования chef:</p>
 <ul class="simple">
 <li>Управление сервисами на удаленном сервере (через XML-RPC или supervisorctl -s SERVER_NAME). Вам это не надо, ведь у вас есть knife с поиском по ролям, нодам и тегам;</li>
-<li>Запуск нескольких инстансов демона без объявления нескольких сервисов. Опять же не особо полезно, веть за вас эти сервисы настраивает chef. И сколько их 1, 10 или 100 вцелом не так уж и важно.</li>
+<li>Запуск нескольких инстансов демона без объявления нескольких сервисов. Опять же не особо полезно, ведь за вас эти сервисы настраивает chef. И сколько их 1, 10 или 100 вцелом не так уж и важно.</li>
 </ul>
 <p>Ссылки по теме:</p>
 <ul class="simple">
