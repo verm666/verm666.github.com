@@ -2,11 +2,52 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <title type="text">Recent Blog Posts</title>
   <id>http://verm666.github.com/feed.atom</id>
-  <updated>2011-10-13T00:00:00Z</updated>
+  <updated>2011-12-15T00:00:00Z</updated>
   <link href="http://verm666.github.com/" />
   <link href="http://verm666.github.com/feed.atom" rel="self" />
   <subtitle type="text">Recent blog posts</subtitle>
   <generator>Werkzeug</generator>
+  <entry xml:base="http://verm666.github.com/feed.atom">
+    <title type="text">Shebang</title>
+    <id>http://verm666.github.com/2011/12/15/shebang</id>
+    <updated>2011-12-15T00:00:00Z</updated>
+    <link href="http://verm666.github.com/2011/12/15/shebang" />
+    <author>
+      <name>verm666</name>
+    </author>
+    <content type="html">&lt;p&gt;В комлекте с ixgbe-3.9.2 идет небольшой скрипт, раскидывающий прерывания по
+ядрам, но речь сейчас не о affinity.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;% head -2 scripts/set_irq_affinity.sh
+# setting up irq affinity according to /proc/interrupts
+# 2008-11-25 Robert Olsson
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Вот так выглядят первые две строчки скрипта. Запускаем руками в консоли -
+все хорошо. Без задней мысли дописываем в /etc/network/interfaces&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;...
+up /etc/network/set_irq_affinity.sh eth0
+...
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;и теряем сервер.&lt;/p&gt;
+&lt;p&gt;Причина банальна - скрипт запускается в sh, который в debian squeeze является
+символической ссылкой на dash. На 32 строке скрипта:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;...
+for ((i=1; i&amp;lt;=$IDX;i++)))
+...
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;скрипт завершается с ошибкой &lt;strong&gt;Syntax error: Bad for loop variable&lt;/strong&gt;.&lt;/p&gt;
+&lt;div class="section" id="id1"&gt;
+&lt;h2&gt;Выводы&lt;/h2&gt;
+&lt;ul class="simple"&gt;
+&lt;li&gt;Товарищи из Intel могли бы и подумать;&lt;/li&gt;
+&lt;li&gt;Никому нельзя верить и все надо проверять.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class="section" id="p-s"&gt;
+&lt;h2&gt;p.s.&lt;/h2&gt;
+&lt;p&gt;Да, сервер еще не был в production и паника немного не уместна, но печально.&lt;/p&gt;
+&lt;/div&gt;
+</content>
+  </entry>
   <entry xml:base="http://verm666.github.com/feed.atom">
     <title type="text">Goblr</title>
     <id>http://verm666.github.com/2011/10/13/goblr</id>
