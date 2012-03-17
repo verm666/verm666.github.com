@@ -1,0 +1,196 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset=utf-8>
+  
+    <title>Ферма для XXX с хранилищем за день | verm666's blog</title>
+    <link href="http://fonts.googleapis.com/css?family=Vollkorn&subset=latin" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="/static/style.css" type="text/css">
+    <link href="/feed.atom" rel="alternate" title="Recent Blog Posts" type="application/atom+xml">
+    <link rel="stylesheet" href="/static/_pygments.css" type="text/css">
+  
+  </head>
+  <body>
+    <div class=container>
+      <div class=header>
+        <a href="/">verm666</a>'s blog
+      </div>
+      <div class=navigation>
+        <ul>
+          <li><a href="/">blog</a>
+          <li><a href="/archive/">archive</a>
+          <li><a href="/tags/">tags</a>
+        </ul>
+      </div>
+      <div class=body>
+      
+  <h1 class="title">Ферма для XXX с хранилищем за день</h1>
+
+  
+  <p class=date>written on Saturday, March 17, 2012
+  
+
+  <div class="section" id="id1">
+<h2>Описание задачи</h2>
+<p>Предоставить сервис, который должен:</p>
+<ul class="simple">
+<li>Принять запрос от клиента на получение видео файла;</li>
+<li>Получить видео данные в контейнере А от др. сервиса (назовем его L);</li>
+<li>Перепаковать в контейнер B;</li>
+<li>Сохранить полученный файл;</li>
+<li>Отдать полученный файл клиенту;</li>
+</ul>
+<p>При этом:</p>
+<ul class="simple">
+<li>При последующих запросах файла - он должен отдаваться без обращения к бэкенду;</li>
+<li>Если на сервис приходит одновременно несколько запросов за одним файлом -
+на бэкенд должен уходить только первый, остальные ждут и получают результат первого.</li>
+<li>Должна быть предоставлена возможность перегенерации полученного файла;</li>
+<li>Ссылка на файл должна иметь время ограниченное жизни.</li>
+</ul>
+</div>
+<div class="section" id="id2">
+<h2>Размах проблемы</h2>
+<ul class="simple">
+<li>&gt; 20 000 запросов на изготовление файлов. Каждый размером ~ 100 МБ;</li>
+</ul>
+</div>
+<div class="section" id="id3">
+<h2>Оборудование, которое было под руками</h2>
+<ul class="simple">
+<li>Сервер (далее S) с 32-мя 3ТБ дисками и 3ware RAID контроллером (9xxx серия);</li>
+<li>N серверов с памятью и процессорами (назовем их W) - будут заниматься обработкой видео.</li>
+</ul>
+</div>
+<div class="section" id="id4">
+<h2>Полученное решение</h2>
+<div class="section" id="m">
+<h3>Число M</h3>
+<p>Число M - максимальное число W-серверов в ферме. Выбирается один раз и навсегда.
+Изменить его потом будет очень сложно. По сути является ограничением
+масштабирования нашей фермы. Я взял 64. Красивое число да и W-серверов больше нет.</p>
+</div>
+<div class="section" id="id5">
+<h3>Хранилище</h3>
+<p>Первое о чем приходится задуматься - предоставление доступа к S-серверу с
+любого W-сервера. При этом хочется иметь POSIX-совместимый доступ к файлам.</p>
+<p>Как ни странно связка XFS + NFS будет работать весьма неплохо. Да, в RW доступе.
+Да, сразу на всех W-серверах. Нет, я не ебанулся.</p>
+<p>На самом деле сказанное выше (а именно RW доступ на всех W-серверах) не совсем
+верно. Доступ будет, но мы не будем им пользоваться.</p>
+<p>В итоге:</p>
+<ul class="simple">
+<li>Из всех дисков создаем RAID-6. Получаем 82 ТБ дискового пространства;</li>
+<li>Создаем на базе этого блочного устройства LVM VG;</li>
+<li>Нарезаем на M (смотри выше) LV;</li>
+<li>Создаем на них XFS;</li>
+<li>Монтируем в /storage/video/[1..M];</li>
+<li>Раздаем через NFS всем W-серверам в rw доступе.</li>
+</ul>
+<p>На этом настройка хранилища заканчивается. Больше о нем думать не надо.
+Теперь надо просто добиться того, что бы в каждую отдельно взятую
+точку монтирования отданную через NFS писал только 1 W-сервер. Этим
+будет заниматься Балансер (Nginx).</p>
+</div>
+<div class="section" id="id6">
+<h3>Балансер</h3>
+<p>Для балансировки запросов к W-серверам и хранилищу будет использоваться Nginx.</p>
+<ul class="simple">
+<li>version &gt;= 1.1.13 (из-за cache_lock);</li>
+<li>add ngx_secure_download;</li>
+<li>add ngx_mod_perl.</li>
+</ul>
+<p>На балансере точно так же как и на W-серверах монтируются все Logical Volume-ы
+c S-сервера, только в ro режиме, так как писать нам на балансере не надо.</p>
+<p>Сразу приведу итоговый конф. файл, что бы было поянтно о чем я говорю:
+<a class="reference external" href="/static/my/xxx_farm_nginx.conf">nginx.conf</a></p>
+<p>На nginx приходят запросы вида: /video/uuid/begin-end.mp4/md5sum/hex_ts, где</p>
+<ul class="simple">
+<li>uuid - некий ID, является идентификатором для обращения к сервису L;</li>
+<li>begin - timestamp начала получаемого файла;</li>
+<li>end - timestamp конца получаемого файла;</li>
+<li>md5sum/hex_ts - кусочки от ngx_secure_download.</li>
+</ul>
+<p>И так, пойдем по порядку:</p>
+<ul class="simple">
+<li>Ограничение времени жизни ссылки на скачивание достигается через
+ngx_secure_download;</li>
+<li>Балансировку между W-серверами и Logical Volume-ами S-сервера будет за нас
+делать mod_perl, <a class="reference external" href="http://www.cse.yorku.ca/~oz/hash.html">djb2</a> и число M.
+Таким образом запрос по конкретному uuid всегда будет уходить
+на один и тот же W-сервер (см. map $shard $backend).
+Итоговый файл для этого uuid всегда будет записываться в один и тот же
+Logical Volume на S-сервере и запись в него будет производить только
+один W-сервер.</li>
+<li>Удерживать одинаковые запросы к бэкенду будет cache_lock (если бы эта директива
+не появилась в последних релизах - пришлось бы добавить еще Varnish. Так как до
+недавнего времени именно этот кэш-сервер умел это делать);</li>
+<li>Возможность пересоздать файл предоставляется через отдельный server на др. порту
+(можно было сделать просто отдельный location, но 80-й порт открыт в Internet);</li>
+<li>Отдача ранее сгенерированных файлов - try_files.</li>
+</ul>
+</div>
+<div class="section" id="id7">
+<h3>Бэкенд</h3>
+<p>Собстенно это небольшой python (flask + eventlet) сервис, который делает несколько
+простых операций:</p>
+<ul class="simple">
+<li>Забирает файл с сервиса L;</li>
+<li>Перепаковывает в конейнер B;</li>
+<li>Записывает файл в нужный Logical Volume;</li>
+<li>Через X-Accel-Redirect отдает файл в Nginx (см. location /internal_video).</li>
+</ul>
+<p>Кстати, ленивые для подобных (или любых других операций) могут воспользоваться
+<a class="reference external" href="https://github.com/verm666/joyer">Joyer</a>.</p>
+</div>
+<div class="section" id="id8">
+<h3>Еще пара слов про масшабирование</h3>
+<p>Добавление нового W-сервера приводит к тому, что мы добавляем его в
+map $shard $backend. Равномерно распределяя shard-ы по бэкендам.</p>
+</div>
+</div>
+<div class="section" id="id9">
+<h2>Выводы</h2>
+<ul class="simple">
+<li>Если у вас есть возможность что-то вынести в mod_perl в Nginx - это
+стоит сделать (сходить в memcache, посмотреть в cookie или как в этом случае -
+получить возможность однозначной балансировки от некоторой переменной);</li>
+<li>Если включать мозг - наличие NFS в проекте не всегда плохо.</li>
+</ul>
+</div>
+<div class="section" id="id10">
+<h2>Литература по теме</h2>
+<ul class="simple">
+<li>Nginx Secure Download - <a class="reference external" href="http://wiki.nginx.org/HttpSecureDownload">http://wiki.nginx.org/HttpSecureDownload</a></li>
+<li>Message Authentication Code - <a class="reference external" href="http://en.wikipedia.org/wiki/Message_authentication_code">http://en.wikipedia.org/wiki/Message_authentication_code</a></li>
+<li>djb2 - <a class="reference external" href="http://www.cse.yorku.ca/~oz/hash.html">http://www.cse.yorku.ca/~oz/hash.html</a></li>
+<li>Nginx cache_lock - <a class="reference external" href="http://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_cache_lock">http://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_cache_lock</a></li>
+<li>nginx.conf - <a class="reference external" href="http://verm666.name/static/my/xxx_farm_nginx.conf">http://verm666.name/static/my/xxx_farm_nginx.conf</a></li>
+<li>joyer - <a class="reference external" href="https://github.com/verm666/joyer">https://github.com/verm666/joyer</a></li>
+</ul>
+</div>
+<div class="section" id="p-s">
+<h2>P.S.</h2>
+<p>XXX - это не значит, что решение используется в сфере связанной с порнографией ;).</p>
+</div>
+
+
+  
+  <p class=tags>This entry was tagged
+    
+      <a href="/tags/djb2/">djb2</a>, 
+      <a href="/tags/hash/">hash</a>, 
+      <a href="/tags/mod_perl/">mod_perl</a>, 
+      <a href="/tags/nfs/">nfs</a> and 
+      <a href="/tags/nginx/">nginx</a>
+  
+
+      </div>
+      <div class=footer>
+          <a href="http://twitter.com/verm666">twitter</a>,
+          <a href="http://github.com/verm666">github</a>,
+          <a href="/feed.atom" rel="alternate" title="Recent Blog Posts">feed</a>
+      </div>
+    </div>
+  </body>
+</html>
