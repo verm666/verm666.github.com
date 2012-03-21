@@ -2,11 +2,152 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <title type="text">Recent Blog Posts</title>
   <id>http://verm666.github.com/feed.atom</id>
-  <updated>2012-03-17T00:00:00Z</updated>
+  <updated>2012-03-20T00:00:00Z</updated>
   <link href="http://verm666.github.com/" />
   <link href="http://verm666.github.com/feed.atom" rel="self" />
   <subtitle type="text">Recent blog posts</subtitle>
   <generator>Werkzeug</generator>
+  <entry xml:base="http://verm666.github.com/feed.atom">
+    <title type="text">Nginx. Что нового?</title>
+    <id>http://verm666.github.com/2012/03/20/nginx_news</id>
+    <updated>2012-03-20T00:00:00Z</updated>
+    <link href="http://verm666.github.com/2012/03/20/nginx_news" />
+    <author>
+      <name>verm666</name>
+    </author>
+    <content type="html">&lt;div class="section" id="nginx"&gt;
+&lt;h2&gt;Nginx. Что нового?&lt;/h2&gt;
+&lt;div class="section" id="disable-symlinks"&gt;
+&lt;h3&gt;disable_symlinks&lt;/h3&gt;
+&lt;ul class="simple"&gt;
+&lt;li&gt;модуль: ngx_http_core_module&lt;/li&gt;
+&lt;li&gt;офф. описание: &lt;a class="reference external" href="http://nginx.org/ru/docs/http/ngx_http_core_module.html#disable_symlinks"&gt;ngx_http_core_module.html#disable_symlinks&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Директива определяет как вести себя с символическими ссылками при открытии
+файла. Офф. описания более чем достаточно, что бы понять как этим пользоваться.&lt;/p&gt;
+&lt;p&gt;Если честно, сейчас я не вижу какого-то реального применения этой директивы,
+особенно с учетом того, что в модуле ngx_http_autoindex_module эта директива
+игнорируется, а ведь именно там порой и хочется странного. Ждем.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="proxy-cookie-domain"&gt;
+&lt;h3&gt;proxy_cookie_domain&lt;/h3&gt;
+&lt;ul class="simple"&gt;
+&lt;li&gt;модуль: ngx_http_proxy_module&lt;/li&gt;
+&lt;li&gt;офф. описание: &lt;a class="reference external" href="http://nginx.org/ru/docs/http/ngx_http_proxy_module.html#proxy_cookie_domain"&gt;ngx_http_proxy_module.html#proxy_cookie_domain&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Директива позволяет подменять domain в Cookie в ответе от бэкенда. По сути
+такой аналог proxy_redirect только для Cookie.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="so-keepalive"&gt;
+&lt;h3&gt;so_keepalive&lt;/h3&gt;
+&lt;ul class="simple"&gt;
+&lt;li&gt;модуль: ngx_http_core_module&lt;/li&gt;
+&lt;li&gt;офф. описание: &lt;a class="reference external" href="http://nginx.org/ru/docs/http/ngx_http_core_module.html#listen"&gt;ngx_http_core_module.html#listen&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Возможность переопределить след. пареметры из sysctl:&lt;/p&gt;
+&lt;ul class="simple"&gt;
+&lt;li&gt;tcp_keepalive_time&lt;/li&gt;
+&lt;li&gt;tcp_keepalive_intvl&lt;/li&gt;
+&lt;li&gt;tcp_keepalive_probes&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;и вкл/выкл SO_KEEPALIVE на сокете.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="https-if-not-empty"&gt;
+&lt;h3&gt;$https и if_not_empty&lt;/h3&gt;
+&lt;ul class="simple"&gt;
+&lt;li&gt;модуль: ngx_http_core_module&lt;/li&gt;
+&lt;li&gt;офф. описание: &lt;a class="reference external" href="http://nginx.org/ru/docs/http/ngx_http_core_module.html#variables"&gt;ngx_http_core_module.html#variables&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Используется в fastcgi/uwsgi/etc_params совместно с новой директивой
+if_not_empty, так как в случае http соединения - значением переменной
+будет пустая строка. Польза от новой переменной очевидная и банальная -
+простой и удобный интерфейс для выставления еще одной переменной (HTTPS)
+в параметрах запроса к бэкенду. Раньше наверное это можно было нагородить
+из if и переменной $scheme.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="proxy-redirect"&gt;
+&lt;h3&gt;proxy_redirect с переменными и регулярными выражениями&lt;/h3&gt;
+&lt;ul class="simple"&gt;
+&lt;li&gt;модуль: ngx_http_proxy_module&lt;/li&gt;
+&lt;li&gt;офф. описание: &lt;a class="reference external" href="http://nginx.org/ru/docs/http/ngx_http_proxy_module.html#proxy_redirect"&gt;ngx_http_proxy_module.html#proxy_redirect&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Теперь в первом аргументе proxy_redirect можно использовать переменные и
+регулярные выражения (причем с capture groups). Теперь можно строить еще более
+извращенные динамические правила. Неописуемый восторг.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="keepalive-upstream"&gt;
+&lt;h3&gt;keepalive в соединении к upstream&lt;/h3&gt;
+&lt;ul class="simple"&gt;
+&lt;li&gt;модуль: ngx_http_upstream_module&lt;/li&gt;
+&lt;li&gt;офф. описание: &lt;a class="reference external" href="http://nginx.org/ru/docs/http/ngx_http_upstream_module.html#keepalive"&gt;ngx_http_upstream_module.html#keepalive&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Работает это так:&lt;/p&gt;
+&lt;ul class="simple"&gt;
+&lt;li&gt;Создаем upstream с keepalive 10;&lt;/li&gt;
+&lt;li&gt;Делаем первый запрос, который уходит на этот upstream;&lt;/li&gt;
+&lt;li&gt;После выполнения запроса TCP соединение остается жить (state: ESTABLISHED);&lt;/li&gt;
+&lt;li&gt;Делаем 100 параллельных подключений. В это время к upstream будет установлено
+100 соединений. После выполнения всех 100 запросов - 10 останется в ESTABLISED
+состоянии. Лишние соединения закрываются.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Чуть подробнее об особенностях этих соединений:&lt;/p&gt;
+&lt;ul class="simple"&gt;
+&lt;li&gt;Кол-во персистентных соединений указывается для всех серверов в группе. Т.е.
+если у вас три сервера в группе и значение keepalive равно 30, то эти 30
+соединений будут распределены между тремя серверами в группе.&lt;/li&gt;
+&lt;li&gt;Соединения распределяются неравномерно по серверам в группе. Сколько
+соединений устанавливается к каждому серверу группы зависит напрямую от того
+на какой из группы приходили последние соединения, т.к. заркываются наиболее
+старые лишние соединения независимо от того, на один сервер из группы они
+пришли или на разные. Это очень хорошо видно, если один сервер из группы
+отвечает на запросы быстрее остальных. К такому серверу будет меньше (или
+вообще не будет) соединений.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Польза от данной директивы очевидная: мы не теряем время на TCP handshake.
+Разница должна хорошо ощущаться при переносе проекта на др. хостинг с proxy_pass
+на старом.&lt;/p&gt;
+&lt;p&gt;Для fastcgi есть аналогичная директива - &lt;a class="reference external" href="http://nginx.org/ru/docs/http/ngx_http_fastcgi_module.html#fastcgi_keep_conn"&gt;fastcgi_keep_conn&lt;/a&gt;
+.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="proxy-cache-lock"&gt;
+&lt;h3&gt;proxy_cache_lock&lt;/h3&gt;
+&lt;ul class="simple"&gt;
+&lt;li&gt;модуль: ngx_http_proxy_module&lt;/li&gt;
+&lt;li&gt;офф. описание: &lt;a class="reference external" href="http://nginx.org/ru/docs/http/ngx_http_proxy_module.html#proxy_cache_lock"&gt;ngx_http_proxy_module.html#proxy_cache_lock&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Об этой директиве я уже вскользь упоминал в &lt;a class="reference external" href="http://verm666.name/2012/03/17/xxx_farm/"&gt;предыдущем посте&lt;/a&gt;. Позволяет удерживать одновременные
+запросы к бэкенду и отдавать всем клиентам ответ полученный от первого запроса.&lt;/p&gt;
+&lt;p&gt;Приемущества:&lt;/p&gt;
+&lt;ul class="simple"&gt;
+&lt;li&gt;Если обработка запросом бэкенда является дорогой (долгой) операцией, то
+использование данной директивы очень упростит вам жизнь. Простой пример
+- HTTP Live Streaming, когда бэкенд генерирует плейлисты и видео файлы для
+этих плейлистов.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Минусы:&lt;/p&gt;
+&lt;ul class="simple"&gt;
+&lt;li&gt;В случае проблем с ушедшим на бэкенд запросом (потеряный SYN, ретрансмит
+пакета), ответ от которого ждут все клиенты - появится дополнительная
+задержка для каждого клиента.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="section" id="id2"&gt;
+&lt;h2&gt;Выводы&lt;/h2&gt;
+&lt;ul class="simple"&gt;
+&lt;li&gt;Nginx 0.7 и текущая версия - это 2 довольно различных продукта;&lt;/li&gt;
+&lt;li&gt;Настоятельно рекомендую читать то, что пишется в CHANGES;&lt;/li&gt;
+&lt;li&gt;Если вы считаете, что последняя ветка нестабильна - вы неправы.
+Сайт проекта webvybory2012.ru работал на 1.1.14 с минимальными изменениями.
+Полет был нормальный;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class="section" id="p-s"&gt;
+&lt;h2&gt;P.S.&lt;/h2&gt;
+&lt;p&gt;Почему мало кто знает про &lt;a class="reference external" href="http://nginx.org/ru/docs/http/ngx_http_proxy_module.html#proxy_intercept_errors"&gt;proxy_intercept_errors&lt;/a&gt;&lt;/p&gt;
+&lt;/div&gt;
+</content>
+  </entry>
   <entry xml:base="http://verm666.github.com/feed.atom">
     <title type="text">Ферма для XXX с хранилищем за день</title>
     <id>http://verm666.github.com/2012/03/17/xxx_farm</id>
